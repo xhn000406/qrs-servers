@@ -9,15 +9,16 @@ datasource qrs {
 
 model t_device_data {
   group_id    String    @qrs.VarChar(50)
-  id          Int       @id
+  id          Int       @id @default(autoincrement())
   user_id     String?   @qrs.VarChar(255)
-  co2         String?   @qrs.VarChar(255)
-  tvoc        String?   @qrs.VarChar(255)
-  pm2_5       String?   @qrs.VarChar(255)
-  pm10        String?   @qrs.VarChar(255)
-  hud         String?   @qrs.VarChar(255)
-  temper      String?   @qrs.VarChar(255)
-  dc          String?   @qrs.VarChar(255)
+  co2         Int?
+  tvoc        Int?
+  pm2_5       Int?
+  pm10        Int?
+  hud         Int?
+  temper      Int?
+  dc          Int?
   update_time DateTime? @qrs.DateTime(0)
-  ch20        String?   @qrs.VarChar(255)
+  ch20        Int?
+  timestamp   String?   @qrs.VarChar(500)
 }

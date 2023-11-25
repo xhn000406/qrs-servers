@@ -2,15 +2,20 @@
  * @Author: xhn000406 1127835255@qq.com
  * @Date: 2023-11-22 22:01:40
  * @LastEditors: xhn000406 1127835255@qq.com
- * @LastEditTime: 2023-11-23 21:04:00
+ * @LastEditTime: 2023-11-25 15:28:18
  * @FilePath: \QRS-SERVER\src\utils\mqtt.ts
- * @Description: 这是默认设置,请设置`customMade`, 打开koroFileHeader查看配置 进行设置: https://github.com/OBKoro1/koro1FileHeader/wiki/%E9%85%8D%E7%BD%AE
+ * @Description: 连接mqtt并且用socketio发送数据给前端
  */
+
 
 
 const mqtt = require('mqtt')
 require('dotenv').config(); 
+import { PrismaClient } from '@prisma/client'
+import { mqttData } from './type';
+import { getDate } from './getDate';
 
+const prisma = new PrismaClient()
 
 
 let options = {
@@ -35,9 +40,58 @@ client.on('connect', () => {
 });
 
 
-client.on("message",(topic:any, message:any)=>{
-    console.log('Received message:', topic, message.toString())
-    
+client.on("message",async (topic:any, message:any)=>{
+      
+    const tiemStamp = new Date().getTime()
+    console.log(tiemStamp)
+    const returnData: mqttData = JSON.parse(message.toString())
+    let  newTime  = 1
+
+    const resultData = await prisma.t_device_data.findMany({
+      where:{
+        group_id:returnData.GroupID
+      },
+      select:{
+         id:true,
+         timestamp:true,
+         update_time:true 
+      },
+      orderBy:{
+        timestamp:"asc"
+      }
+    })
+   
+    if(resultData != null && resultData.length > 0){
+      const {id,timestamp : oldTimestamp  }= resultData[resultData.length -1]
+      newTime =  tiemStamp -  Number(oldTimestamp)
+      console.log(newTime)
+      console.log("开始")
+    }
+
+  //  if(newTime > 3600000){
+  //   await 
+  //  }
+ 
+  if(resultData.length < 24 &&newTime > 3600 || newTime === 1){
+   const {GroupID, UserID,CO2,TVOC,CH2O,PM2_5,PM10,temper,hud, DC} = returnData
+   await prisma.t_device_data.create({
+    data:{
+      group_id:GroupID,
+      update_time:getDate(tiemStamp),
+      timestamp:tiemStamp + '',
+      user_id:UserID,
+      co2:CO2,
+      tvoc:TVOC,
+      ch20:CH2O,
+      pm2_5:PM2_5,
+      pm10:PM10,
+      temper:temper,
+      hud:hud,
+      dc:DC
+    }
+   })
+  
+  }
 })
 
 client.on('error',(err:Error)=>{
@@ -49,5 +103,4 @@ client.on("offline",()=>{
 })
 
 }
-
 module.exports= mqttFunction

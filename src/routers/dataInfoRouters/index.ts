@@ -15,7 +15,7 @@ const {getAllInfoData} = require("../../controllers/dataInfoRouters/index")
 
 
 
-dataInfoRouter.get('/dataInfo',getAllInfoData)
+dataInfoRouter.post('/dataInfo',getAllInfoData)
 
 module.exports = dataInfoRouter 
 
