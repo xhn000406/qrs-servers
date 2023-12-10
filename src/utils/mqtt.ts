@@ -2,7 +2,7 @@
  * @Author: xhn000406 1127835255@qq.com
  * @Date: 2023-11-22 22:01:40
  * @LastEditors: xhn000406 1127835255@qq.com
- * @LastEditTime: 2023-11-26 22:01:36
+ * @LastEditTime: 2023-11-27 21:59:05
  * @FilePath: \QRS-SERVER\src\utils\mqtt.ts
  * @Description: 连接mqtt并且用socketio发送数据给前端
  */
@@ -17,6 +17,7 @@ import { getDate } from './getDate';
 
 const prisma = new PrismaClient()
 
+//更新最后更新的sql Function
 const updateLastTime = async (Group_id:string,lastTime:string) =>{
   await  prisma.t_device_info.updateMany({
     where:{
@@ -55,7 +56,6 @@ client.on('connect', () => {
 client.on("message",async (topic:any, message:any)=>{
       
     const tiemStamp = new Date().getTime()
-    console.log(tiemStamp)
     const returnData: mqttData = JSON.parse(message.toString())
     let  newTime  = 1
     let selectIndex= 0
@@ -80,9 +80,7 @@ client.on("message",async (topic:any, message:any)=>{
      
     }
 
-  //  if(newTime > 3600000){
-  //   await 
-  //  }
+
  
   if(resultData.length < 24 &&newTime > 36000 || newTime === 1){
    const {GroupID, UserID,CO2,TVOC,CH2O,PM2_5,PM10,temper,hud, DC} = returnData
@@ -106,9 +104,9 @@ client.on("message",async (topic:any, message:any)=>{
   }
 
   if(resultData.length  === 24 &&newTime > 2){
-    console.log('更改成功')
 selectIndex = resultData[0].id
 const {GroupID, UserID,CO2,TVOC,CH2O,PM2_5,PM10,temper,hud, DC} = returnData
+await updateLastTime(GroupID,getDate(tiemStamp))
 await prisma.t_device_data.update({
   where:{
     id:selectIndex
